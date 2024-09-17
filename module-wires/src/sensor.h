@@ -13,6 +13,7 @@ class Sensor {
     bool hasWire();
     Wire initialState();
     Wire currentState();
+    int getLastValue();
 
   private:
     short pin;

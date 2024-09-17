@@ -84,7 +84,7 @@ void setup()
   Serial.begin(115200);
   Serial.println("Booting...");
 
-  Serial2.begin(9600);
+  //Serial2.begin(9600);
 
   chat.begin();
 

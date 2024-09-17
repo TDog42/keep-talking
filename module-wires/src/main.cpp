@@ -36,7 +36,6 @@ void setup()
 
 void loop()
 {
-
   if (chat.receive(&msg))
   {
     switch (msg.message)

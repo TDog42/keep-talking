@@ -5,12 +5,14 @@
 
 const short NUM_WIRE_OPTS = 6;
 
+int value;
+
 Sensor::Sensor(short pinNumber)
 {
   pin = pinNumber;
 
   pinMode(pin, INPUT_PULLUP);
-  int value = analogRead(pin);
+  value = analogRead(pin);
 
   for (short j = 0; j < NUM_WIRE_OPTS; j++)
   {
@@ -26,7 +28,7 @@ Sensor::Sensor(short pinNumber)
 
 bool Sensor::update()
 {
-  int value = analogRead(pin);
+  value = analogRead(pin);
   Wire next_state;
 
   for (short j = 0; j < NUM_WIRE_OPTS; j++)
@@ -61,6 +63,12 @@ Wire Sensor::initialState()
 Wire Sensor::currentState()
 {
   return current_state;
+}
+
+
+int Sensor::getLastValue()
+{
+  return value;
 }
 
 bool Sensor::hasWire()
