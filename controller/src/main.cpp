@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 #include <PCM.h>
 #include <chat.h>
 #include "clock.h"
@@ -74,6 +75,8 @@ SerialNumber serialNumbers[32] = {
 
 SerialNumber *serialNumber;
 
+LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27,16,2);
+
 void detonate();
 void disarm();
 void setDifficulty(short d);
@@ -84,7 +87,9 @@ void setup()
   Serial.begin(115200);
   Serial.println("Booting...");
 
-  Serial2.begin(9600);
+  lcd.begin(16,2);
+  lcd.init();
+  lcd.backlight();
 
   chat.begin();
 
@@ -120,10 +125,10 @@ void setup()
   serialNumber = &serialNumbers[random(32)];
   serialNumber->randomizeIndicators();
 
-  clearLCD();
-  selectLineOneLCD();
-  printLCD("Configuring...");
-  selectLineTwoLCD();
+  lcd.clear();
+  lcd.setCursor(0, 0); //Line 1
+  lcd.print("Configuring...");
+  lcd.setCursor(0, 1); //Line 2
   
   for (int i = 0; i < 128; i++)
   {
@@ -134,7 +139,7 @@ void setup()
     
     if (i % 8 == 0)
     {
-      writeLCD(255); // all pixels character for the loading bar
+      lcd.write(255); // all pixels character for the loading bar
     }
     delay(30);
 
@@ -156,11 +161,11 @@ void setup()
     setDifficulty(DIFFICULTY_EASY);
   }
 
-  clearLCD();
-  selectLineOneLCD();
-  printLCD("Serial No");
-  selectLineTwoLCD();
-  printLCD(serialNumber->number);
+  lcd.clear();
+  lcd.setCursor(0, 0); //Line 1
+  lcd.print("Serial No");
+  lcd.setCursor(0, 1); //Line 2
+  lcd.print(serialNumber->number);
 
   digitalWrite(CTRL_LED, serialNumber->ctrl);
   digitalWrite(ALT_LED, serialNumber->alt);
@@ -254,29 +259,29 @@ void detonate()
 {
   if (noFailMode)
   {
-    clearLCD();
-    selectLineOneLCD();
-    printLCD("OVERTIME!");
+    lcd.clear();
+    lcd.setCursor(0, 0); //Line 1
+    lcd.print("OVERTIME!");
   }
   else
   {
     chat.send(MessageType::Detonate);
 
-    clearLCD();
-    selectLineOneLCD();
-    printLCD("OH NOES!!!");
+    lcd.clear();
+    lcd.setCursor(0, 0); //Line 1
+    lcd.print("OH NOES!!!");
 
     delay(500);
     tone_blocking(800, 1000);
     delay(500);
 
-    selectLineTwoLCD();
-    printLCD("BOOM!!!");
+    lcd.setCursor(0, 1); //Line 2
+    lcd.print("BOOM!!!");
 
     startPlayback(SND_EXPLOSION, sizeof(SND_EXPLOSION));
 
     delay(1500);
-    clearLCD();
+    lcd.clear();
 
     // one last refresh to clear out any ms
     // this causes an extra "tick" which seems to not be necessary
@@ -297,8 +302,8 @@ void disarm()
 
 void setDifficulty(short d)
 {
-  clearLCD();
-  selectLineOneLCD();
+  lcd.clear();
+  lcd.setCursor(0, 0); //Line 1
 
   switch(d)
   {
@@ -306,40 +311,40 @@ void setDifficulty(short d)
       duration = 300; // FIVE MINUTES
       numModulesToWin = 3;
       noFailMode = true;
-      printLCD("No Fail Mode...");
+      lcd.print("No Fail Mode...");
       Serial.println("No Fail Mode");
-      selectLineTwoLCD();
+      lcd.setCursor(0, 1); //Line 2
       break;
     case DIFFICULTY_EASY:
       duration = 300; // FIVE MINUTES
       numModulesToWin = 3;
       noFailMode = false;
-      printLCD("Easy Mode");
-      selectLineTwoLCD();
+      lcd.print("Easy Mode");
+      lcd.setCursor(0, 1); //Line 2
       Serial.println("Easy Difficulty");
       break;
     case DIFFICULTY_NORMAL:
       duration = 300; // FIVE MINUTES
       numModulesToWin = 6;
       noFailMode = false;
-      printLCD("Normal Mode");
-      selectLineTwoLCD();
+      lcd.print("Normal Mode");
+      lcd.setCursor(0, 1); //Line 2
       Serial.println("Normal Difficulty");
       break;
     case DIFFICULTY_HEROIC:
       duration = 480; // EIGHT MINUTES
       numModulesToWin = 9;
       noFailMode = false;
-      printLCD("Heroic Mode");
-      selectLineTwoLCD();
+      lcd.print("Heroic Mode");
+      lcd.setCursor(0, 1); //Line 2
       Serial.println("Heroic Difficulty");
       break;
     case DIFFICULTY_LEGENDARY:
       duration = 360; // SIX MINUTES
       numModulesToWin = 9;
       noFailMode = false;
-      printLCD("Legendary Mode");
-      selectLineTwoLCD();
+      lcd.print("Legendary Mode");
+      lcd.setCursor(0, 1); //Line 2
       Serial.println("Legendary Difficulty");
       break;
   }
