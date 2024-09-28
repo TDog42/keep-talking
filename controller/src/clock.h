@@ -2,7 +2,11 @@
 #define CLOCK_H
 
 #include <Adafruit_GFX.h>
-#include "Adafruit_LEDBackpack.h"
+#include <AceTMI.h> // SimpleTmi1637Interface
+#include <AceSegment.h> // Tm1637Module
+
+using ace_tmi::SimpleTmi1637Interface;
+using ace_segment::Tm1637Module;
 
 struct TimeChanges
 {
@@ -22,7 +26,6 @@ class Clock
     long strike2time = -1;
     short digits[4];
     short prevDigits[4];
-    Adafruit_7segment matrix;
 
   public:
     Clock(short seconds);

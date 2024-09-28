@@ -2,6 +2,36 @@
 #include <PCM.h>
 #include "sounds.h"
 
+// Replace these with the PIN numbers of your dev board.
+const uint8_t CLK_PIN = 2;
+const uint8_t DIO_PIN = 3;
+const uint8_t NUM_DIGITS = 4;
+
+// Many TM1637 LED modules contain 10 nF capacitors on their DIO and CLK lines
+// which are unreasonably high. This forces a 100 microsecond delay between
+// bit transitions. If you remove those capacitors, you can set this as low as
+// 1-5 micros.
+const uint8_t DELAY_MICROS = 100;
+
+using TmiInterface = SimpleTmi1637Interface;
+TmiInterface tmiInterface(DIO_PIN, CLK_PIN, DELAY_MICROS);
+Tm1637Module<TmiInterface, NUM_DIGITS> ledModule(tmiInterface);
+
+// LED segment patterns.
+const uint8_t NUM_PATTERNS = 10;
+const uint8_t PATTERNS[NUM_PATTERNS] = {
+  0b00111111, // 0
+  0b00000110, // 1
+  0b01011011, // 2
+  0b01001111, // 3
+  0b01100110, // 4
+  0b01101101, // 5
+  0b01111101, // 6
+  0b00000111, // 7
+  0b01111111, // 8
+  0b01101111, // 9
+};
+
 Clock::Clock(short seconds)
 {
   length = 1000 * (long)seconds;
@@ -9,16 +39,18 @@ Clock::Clock(short seconds)
   lastDisplay = -1;
   lastSound = -1;
   strikes = 0;
-  matrix.begin(0x70);
-  matrix.drawColon(true);
 
-  matrix.writeDigitNum(0, 0);
-  matrix.writeDigitNum(1, 0);
-  matrix.writeDigitNum(3, 0);
-  matrix.writeDigitNum(4, 0);
-  matrix.writeDisplay();
+  tmiInterface.begin();
+  ledModule.begin();
 
-  startTime = millis();
+  ledModule.setPatternAt(0, PATTERNS[0]);
+  ledModule.setPatternAt(1, PATTERNS[0]);
+  ledModule.setPatternAt(2, PATTERNS[0]);
+  ledModule.setPatternAt(3, PATTERNS[0]);
+
+  ledModule.setBrightness(5);
+
+  ledModule.flush();
   refresh();
 }
 
@@ -67,15 +99,19 @@ TimeChanges Clock::refresh()
       lastDisplay = seconds;
 
       tick();
-      matrix.writeDigitNum(0, digits[0]);
-      matrix.writeDigitNum(1, digits[1]);
-      matrix.writeDigitNum(3, digits[2]);
-      matrix.writeDigitNum(4, digits[3]);
-      matrix.writeDisplay();
+
+      ledModule.setDecimalPointAt(1);
+      ledModule.flush();
+
+      ledModule.setPatternAt(0, PATTERNS[digits[0]]);
+      ledModule.setPatternAt(1, PATTERNS[digits[1]]);
+      ledModule.setPatternAt(2, PATTERNS[digits[2]]);
+      ledModule.setPatternAt(3, PATTERNS[digits[3]]);
+
+      ledModule.flush();
     }
 
   } else {
-    matrix.writeDigitRaw(2, 0xE); // turn on both colons
     if (seconds < 10) {
       digits[0] = 0;
       digits[1] = seconds;
@@ -104,13 +140,17 @@ TimeChanges Clock::refresh()
       {
         lastSound = tenths;
         tick();
-      }
-      
-      matrix.writeDigitNum(0, digits[0]);
-      matrix.writeDigitNum(1, digits[1]);
-      matrix.writeDigitNum(3, digits[2]);
-      matrix.writeDigitNum(4, digits[3]);
-      matrix.writeDisplay();
+      }      
+
+      ledModule.setDecimalPointAt(1);
+      ledModule.flush();
+
+      ledModule.setPatternAt(0, PATTERNS[digits[0]]);
+      ledModule.setPatternAt(1, PATTERNS[digits[1]]);
+      ledModule.setPatternAt(2, PATTERNS[digits[2]]);
+      ledModule.setPatternAt(3, PATTERNS[digits[3]]);
+
+      ledModule.flush();
     }
 
     // When timer is under 1 minute, the display moves the digits around for effect.
@@ -144,7 +184,7 @@ bool Clock::isExpired()
 
 void Clock::showColon(bool flag)
 {
-  matrix.drawColon(flag);
+  ledModule.setDecimalPointAt(2);
 }
 
 void Clock::strike()
