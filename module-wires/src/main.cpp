@@ -5,8 +5,8 @@
 #include "wire.h"
 
 #define STATUS_GND 11
-#define STATUS_RED 12
-#define STATUS_GRN 13
+#define STATUS_RED 2
+#define STATUS_GRN 3
 
 bool disarmed = false;
 bool detonated = false;

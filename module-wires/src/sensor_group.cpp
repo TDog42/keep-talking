@@ -116,8 +116,10 @@ SensorGroupEvent SensorGroup::update()
   {
     bool changed = sensors[i].update();
 
-    Serial.print("Current read value: ");
-    Serial.println(sensors[i].getLastValue());
+    //Serial.print("Current read value: ");
+    //Serial.println(sensors[i].currentState().id);
+
+
 
     if (changed) 
     {
